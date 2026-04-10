@@ -206,7 +206,12 @@ function initPlayer() {
         return;
       case "previousTrack":
         pauseOnNextFileLoaded = false;
-        iina.playlist.playPrevious();
+        if (safeNumber("time-pos", 0) > 3) {
+          iina.core.seekTo(0);
+          queueState({ "time-pos": 0 });
+        } else {
+          iina.playlist.playPrevious();
+        }
         return;
       case "nextTrack":
         pauseOnNextFileLoaded = false;
