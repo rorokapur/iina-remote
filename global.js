@@ -150,7 +150,8 @@ function initGlobal() {
 
   function startServer() {
     try {
-      iina.ws.createServer({ port: PORT });
+      const port = iina.preferences.get("port") || 3001;
+      iina.ws.createServer({ port });
       iina.ws.startServer();
     } catch (e) {
       reportError("start-server", e);

@@ -11,8 +11,15 @@
   "ghRepo": "rorokapur/iina-remote",
   "ghVersion": 1,
   "permissions": [
-    "network-request",
-    "file-system"
+    "network-request"
+  ],
+  "preferences": [
+    {
+      "name": "port",
+      "label": "WebSocket Port",
+      "type": "number",
+      "default": 3001
+    }
   ],
   "allowedDomains": [
     "*"

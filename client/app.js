@@ -8,10 +8,13 @@ const SKIP_COOLDOWN_MS = 180;
 const PLAYLIST_SELECT_COOLDOWN_MS = 220;
 const SAVED_WS_URL_KEY = 'iinaRemote.wsUrl';
 
+const ICON_PLAY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+const ICON_PAUSE = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+
 const statusText = document.getElementById('connection-status');
 const statusDot = document.getElementById('connection-dot');
 const statusPill = document.getElementById('status-pill');
-const openConnectionBtn = document.getElementById('btn-open-connection');
+const openConnectionBtn = document.getElementById('btn-status-open');
 const connectionModal = document.getElementById('connection-modal');
 const closeConnectionBtn = document.getElementById('btn-close-connection');
 const titleEl = document.getElementById('media-title');
@@ -211,7 +214,7 @@ function applyState(state) {
   }
 
   if (typeof state.pause === 'boolean') {
-    playPauseIcon.textContent = state.pause ? 'Play' : 'Pause';
+    playPauseIcon.innerHTML = state.pause ? ICON_PLAY : ICON_PAUSE;
   }
 
   if (typeof state.duration === 'number' && Number.isFinite(state.duration) && state.duration >= 0) {
