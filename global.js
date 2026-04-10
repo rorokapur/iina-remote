@@ -1,4 +1,4 @@
-const PORT = 3001;
+const PORT = 48381;
 const RESTART_DELAY_MS = 2500;
 const MAX_PLAYLIST_ITEMS = 400;
 
@@ -150,8 +150,11 @@ function initGlobal() {
 
   function startServer() {
     try {
-      const port = iina.preferences.get("port") || 3001;
-      iina.ws.createServer({ port });
+      iina.console.log(`[global] Starting server on port ${PORT}`);
+      // Ensure any old server is stopped
+      try { iina.ws.stopServer(); } catch (e) {}
+
+      iina.ws.createServer({ port: PORT });
       iina.ws.startServer();
     } catch (e) {
       reportError("start-server", e);
@@ -186,7 +189,14 @@ function initGlobal() {
   iina.ws.onMessage((conn, rawMessage) => {
     let parsed = null;
     try {
-      parsed = JSON.parse(rawMessage.text());
+      if (typeof rawMessage === "string") {
+        parsed = JSON.parse(rawMessage);
+      } else if (rawMessage && typeof rawMessage.text === "function") {
+        parsed = JSON.parse(rawMessage.text());
+      } else {
+        reportError("parse-message", "Unknown message format");
+        return;
+      }
     } catch (e) {
       reportError("parse-message", e);
       return;

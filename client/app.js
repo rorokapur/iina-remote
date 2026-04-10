@@ -52,7 +52,7 @@ function setConnectionModalOpen(isOpen) {
 
 function defaultWSURL() {
   const host = window.location.hostname || 'localhost';
-  return `ws://${host}:3001`;
+  return `ws://${host}:48381`;
 }
 
 function normalizeWSURL(raw) {
