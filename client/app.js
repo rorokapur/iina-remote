@@ -123,7 +123,9 @@ function connect(rawURL) {
 
   closeSocket();
   currentWSURL = normalized;
-  wsURLInput.value = normalized;
+  if (document.activeElement !== wsURLInput) {
+    wsURLInput.value = normalized;
+  }
   localStorage.setItem(SAVED_WS_URL_KEY, normalized);
   shouldAutoReconnect = true;
   setConnectingUI();
