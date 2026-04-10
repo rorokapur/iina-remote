@@ -1,6 +1,6 @@
-# IINA Remote (Vibe Coded)
+# IINA Remote
 
-A lightweight, responsive remote control for the [IINA](https://iina.io/) media player.
+A lightweight, **vibe coded** remote control for the [IINA](https://iina.io/) media player.
 
 ## How it Works
 
