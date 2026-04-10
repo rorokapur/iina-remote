@@ -1,6 +1,3 @@
-# Dependency directories
-node_modules/
-
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -10,15 +7,4 @@ node_modules/
 ehthumbs.db
 Thumbs.db
 
-# Build artifacts
-# IINA remote local build folder
-iina-remote.iinaplugin/
-
-# Misc
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# NOTE: We are NOT ignoring /dist and /client 
-# because IINA needs these built files to install directly from GitHub.
+# NOTE: No build artifacts to ignore as this is a plain JS project.

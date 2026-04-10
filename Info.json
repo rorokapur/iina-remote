@@ -6,8 +6,8 @@
   "author": {
     "name": "Antigravity"
   },
-  "globalEntry": "dist/global.js",
-  "entry": "dist/index.js",
+  "globalEntry": "global.js",
+  "entry": "index.js",
   "ghRepo": "rorokapur/iina-remote",
   "ghVersion": 1,
   "permissions": [

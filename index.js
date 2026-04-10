@@ -1,19 +1,20 @@
-"use strict";
+const MAX_PLAYLIST_ITEMS = 400;
+const STATE_FLUSH_MS = 80;
+const TIME_POS_MIN_INTERVAL_MS = 450;
 
-// src/index.ts
-var MAX_PLAYLIST_ITEMS = 400;
-var STATE_FLUSH_MS = 80;
-var TIME_POS_MIN_INTERVAL_MS = 450;
 function initPlayer() {
   let stopAfterCurrent = false;
   let pauseOnNextFileLoaded = false;
   let lastTimePos = -1;
   let lastTimePosAt = 0;
+
   let pendingState = {};
   let flushTimer = null;
+
   function reportError(scope, error) {
     iina.console.error(`[player:${scope}] ${String(error)}`);
   }
+
   function safeNumber(name, fallback) {
     try {
       const value = iina.mpv.getNumber(name);
@@ -22,6 +23,7 @@ function initPlayer() {
       return fallback;
     }
   }
+
   function safeBoolean(name, fallback) {
     try {
       return Boolean(iina.mpv.getNative(name));
@@ -29,6 +31,7 @@ function initPlayer() {
       return fallback;
     }
   }
+
   function safeString(name, fallback) {
     try {
       const value = iina.mpv.getString(name);
@@ -37,10 +40,12 @@ function initPlayer() {
       return fallback;
     }
   }
+
   function queueState(partial) {
     if (!partial || typeof partial !== "object") return;
     pendingState = { ...pendingState, ...partial };
     if (flushTimer) return;
+
     flushTimer = setTimeout(() => {
       const payload = pendingState;
       pendingState = {};
@@ -52,6 +57,7 @@ function initPlayer() {
       }
     }, STATE_FLUSH_MS);
   }
+
   function displayNameFromPath(value) {
     if (!value) return "Untitled";
     const trimmed = value.split("?")[0];
@@ -64,6 +70,7 @@ function initPlayer() {
       return tail;
     }
   }
+
   function getPlaylistState() {
     try {
       const list = iina.playlist.list().slice(0, MAX_PLAYLIST_ITEMS);
@@ -82,6 +89,7 @@ function initPlayer() {
       return { playlist: [], playlistIndex: -1 };
     }
   }
+
   function fullState() {
     return {
       pause: safeBoolean("pause", true),
@@ -93,9 +101,11 @@ function initPlayer() {
       ...getPlaylistState()
     };
   }
+
   function emitFullState() {
     queueState(fullState());
   }
+
   function withGuard(scope, fn) {
     try {
       fn();
@@ -103,33 +113,33 @@ function initPlayer() {
       reportError(scope, e);
     }
   }
-  iina.event.on(
-    "mpv.pause.changed",
-    () => withGuard("pause.changed", () => {
+
+  iina.event.on("mpv.pause.changed", () =>
+    withGuard("pause.changed", () => {
       queueState({ pause: safeBoolean("pause", true) });
     })
   );
-  iina.event.on(
-    "mpv.volume.changed",
-    () => withGuard("volume.changed", () => {
+
+  iina.event.on("mpv.volume.changed", () =>
+    withGuard("volume.changed", () => {
       queueState({ volume: safeNumber("volume", 100) });
     })
   );
-  iina.event.on(
-    "mpv.duration.changed",
-    () => withGuard("duration.changed", () => {
+
+  iina.event.on("mpv.duration.changed", () =>
+    withGuard("duration.changed", () => {
       queueState({ duration: safeNumber("duration", 0) });
     })
   );
-  iina.event.on(
-    "mpv.media-title.changed",
-    () => withGuard("title.changed", () => {
+
+  iina.event.on("mpv.media-title.changed", () =>
+    withGuard("title.changed", () => {
       queueState({ title: safeString("media-title", "No Media") });
     })
   );
-  iina.event.on(
-    "mpv.time-pos.changed",
-    () => withGuard("time-pos.changed", () => {
+
+  iina.event.on("mpv.time-pos.changed", () =>
+    withGuard("time-pos.changed", () => {
       const pos = safeNumber("time-pos", 0);
       const now = Date.now();
       if (now - lastTimePosAt < TIME_POS_MIN_INTERVAL_MS && Math.abs(pos - lastTimePos) < 0.75) {
@@ -140,29 +150,29 @@ function initPlayer() {
       queueState({ "time-pos": pos });
     })
   );
-  iina.event.on(
-    "mpv.playlist-pos.changed",
-    () => withGuard("playlist-pos.changed", () => {
+
+  iina.event.on("mpv.playlist-pos.changed", () =>
+    withGuard("playlist-pos.changed", () => {
       queueState(getPlaylistState());
     })
   );
-  iina.event.on(
-    "mpv.playlist-count.changed",
-    () => withGuard("playlist-count.changed", () => {
+
+  iina.event.on("mpv.playlist-count.changed", () =>
+    withGuard("playlist-count.changed", () => {
       queueState(getPlaylistState());
     })
   );
-  iina.event.on(
-    "mpv.end-file",
-    () => withGuard("end-file", () => {
+
+  iina.event.on("mpv.end-file", () =>
+    withGuard("end-file", () => {
       if (stopAfterCurrent) {
         pauseOnNextFileLoaded = true;
       }
     })
   );
-  iina.event.on(
-    "iina.file-loaded",
-    () => withGuard("file-loaded", () => {
+
+  iina.event.on("iina.file-loaded", () =>
+    withGuard("file-loaded", () => {
       if (pauseOnNextFileLoaded) {
         pauseOnNextFileLoaded = false;
         iina.core.pause();
@@ -170,10 +180,12 @@ function initPlayer() {
       emitFullState();
     })
   );
+
   function handleRemoteCommand(raw) {
     if (!raw || typeof raw !== "object") return;
     const command = raw.command;
     const value = raw.value;
+
     switch (command) {
       case "pause":
         iina.core.pause();
@@ -242,12 +254,14 @@ function initPlayer() {
         return;
     }
   }
-  iina.global.onMessage(
-    "remote-command",
-    (message) => withGuard("remote-command", () => {
+
+  iina.global.onMessage("remote-command", (message) =>
+    withGuard("remote-command", () => {
       handleRemoteCommand(message);
     })
   );
+
   emitFullState();
 }
+
 initPlayer();

@@ -1,10 +1,8 @@
-"use strict";
+const PORT = 3001;
+const RESTART_DELAY_MS = 2500;
+const MAX_PLAYLIST_ITEMS = 400;
 
-// src/global.ts
-var PORT = 3001;
-var RESTART_DELAY_MS = 2500;
-var MAX_PLAYLIST_ITEMS = 400;
-var COMMANDS = /* @__PURE__ */ new Set([
+const COMMANDS = new Set([
   "pause",
   "resume",
   "togglePause",
@@ -17,10 +15,12 @@ var COMMANDS = /* @__PURE__ */ new Set([
   "playPlaylistIndex",
   "setStopAfterCurrent"
 ]);
+
 function initGlobal() {
-  const connections = /* @__PURE__ */ new Set();
+  const connections = new Set();
   let activePlayerID = null;
   let restartTimer = null;
+
   let latestState = {
     pause: true,
     volume: 100,
@@ -31,9 +31,11 @@ function initGlobal() {
     playlist: [],
     playlistIndex: -1
   };
+
   function reportError(scope, error) {
     iina.console.error(`[global:${scope}] ${String(error)}`);
   }
+
   function safeJSONStringify(value) {
     try {
       return JSON.stringify(value);
@@ -42,35 +44,44 @@ function initGlobal() {
       return "{}";
     }
   }
+
   function cleanTitle(value) {
     return typeof value === "string" && value ? value : "No Media";
   }
+
   function sanitizePlaylist(value) {
     if (!Array.isArray(value)) return [];
     const trimmed = value.slice(0, MAX_PLAYLIST_ITEMS);
-    return trimmed.map((item, index) => {
-      if (!item || typeof item !== "object") return null;
-      const itemIndex = typeof item.index === "number" && Number.isFinite(item.index) ? Math.floor(item.index) : index;
-      const title = typeof item.title === "string" && item.title ? item.title : `Track ${itemIndex + 1}`;
-      const isPlaying = Boolean(item.isPlaying);
-      return { index: itemIndex, title, isPlaying };
-    }).filter(Boolean);
+    return trimmed
+      .map((item, index) => {
+        if (!item || typeof item !== "object") return null;
+        const itemIndex =
+          typeof item.index === "number" && Number.isFinite(item.index) ? Math.floor(item.index) : index;
+        const title = typeof item.title === "string" && item.title ? item.title : `Track ${itemIndex + 1}`;
+        const isPlaying = Boolean(item.isPlaying);
+        return { index: itemIndex, title, isPlaying };
+      })
+      .filter(Boolean);
   }
+
   function sanitizeIncomingState(raw) {
     if (!raw || typeof raw !== "object") return null;
     const result = {};
+
     if (typeof raw.pause === "boolean") result.pause = raw.pause;
     if (typeof raw.volume === "number" && Number.isFinite(raw.volume)) result.volume = raw.volume;
     if (typeof raw["time-pos"] === "number" && Number.isFinite(raw["time-pos"])) result["time-pos"] = raw["time-pos"];
     if (typeof raw.duration === "number" && Number.isFinite(raw.duration)) result.duration = raw.duration;
-    if (raw.title !== void 0) result.title = cleanTitle(raw.title);
-    if (raw.stopAfterCurrent !== void 0) result.stopAfterCurrent = Boolean(raw.stopAfterCurrent);
-    if (raw.playlist !== void 0) result.playlist = sanitizePlaylist(raw.playlist);
+    if (raw.title !== undefined) result.title = cleanTitle(raw.title);
+    if (raw.stopAfterCurrent !== undefined) result.stopAfterCurrent = Boolean(raw.stopAfterCurrent);
+    if (raw.playlist !== undefined) result.playlist = sanitizePlaylist(raw.playlist);
     if (typeof raw.playlistIndex === "number" && Number.isFinite(raw.playlistIndex)) {
       result.playlistIndex = Math.floor(raw.playlistIndex);
     }
+
     return result;
   }
+
   function samePlaylist(a, b) {
     if (!Array.isArray(a) || !Array.isArray(b)) return false;
     if (a.length !== b.length) return false;
@@ -82,6 +93,7 @@ function initGlobal() {
     }
     return true;
   }
+
   function diffState(next, prev) {
     const changed = {};
     for (const key in next) {
@@ -97,6 +109,7 @@ function initGlobal() {
     }
     return changed;
   }
+
   function postToPlayers(command, value = null) {
     const payload = { command, value };
     if (activePlayerID) {
@@ -107,12 +120,14 @@ function initGlobal() {
         reportError("post-active-player", e);
       }
     }
+
     try {
       iina.global.postMessage(null, "remote-command", payload);
     } catch (e) {
       reportError("post-all-players", e);
     }
   }
+
   function broadcastToAll(payload) {
     const data = safeJSONStringify(payload);
     connections.forEach((conn) => {
@@ -124,6 +139,7 @@ function initGlobal() {
       }
     });
   }
+
   function scheduleRestart() {
     if (restartTimer) return;
     restartTimer = setTimeout(() => {
@@ -131,6 +147,7 @@ function initGlobal() {
       startServer();
     }, RESTART_DELAY_MS);
   }
+
   function startServer() {
     try {
       iina.ws.createServer({ port: PORT });
@@ -140,12 +157,14 @@ function initGlobal() {
       scheduleRestart();
     }
   }
+
   iina.ws.onStateUpdate((state, error) => {
     if (state === "failed" || state === "cancelled") {
       reportError("server-state", error?.message || state);
       scheduleRestart();
     }
   });
+
   iina.ws.onNewConnection((conn) => {
     connections.add(conn);
     try {
@@ -156,11 +175,13 @@ function initGlobal() {
     postToPlayers("getState");
     postToPlayers("getPlaylist");
   });
+
   iina.ws.onConnectionStateUpdate((conn, state) => {
     if (state === "failed" || state === "cancelled" || state === "closed") {
       connections.delete(conn);
     }
   });
+
   iina.ws.onMessage((conn, rawMessage) => {
     let parsed = null;
     try {
@@ -169,10 +190,12 @@ function initGlobal() {
       reportError("parse-message", e);
       return;
     }
+
     if (!parsed || typeof parsed !== "object") return;
     const command = parsed.command;
     const value = parsed.value;
     if (!COMMANDS.has(command)) return;
+
     if (command === "getState") {
       try {
         iina.ws.sendText(conn, safeJSONStringify(latestState));
@@ -182,6 +205,7 @@ function initGlobal() {
       postToPlayers("getState");
       return;
     }
+
     if (command === "getPlaylist") {
       try {
         iina.ws.sendText(
@@ -194,22 +218,30 @@ function initGlobal() {
       postToPlayers("getPlaylist");
       return;
     }
+
     if (command === "seek" || command === "setVolume" || command === "playPlaylistIndex") {
       if (typeof value !== "number" || !Number.isFinite(value)) return;
     }
+
     postToPlayers(command, value ?? null);
   });
+
   iina.global.onMessage("remote-state", (rawState, playerID) => {
     if (playerID) {
       activePlayerID = playerID;
     }
+
     const sanitized = sanitizeIncomingState(rawState);
     if (!sanitized) return;
+
     const changed = diffState(sanitized, latestState);
     if (Object.keys(changed).length === 0) return;
+
     latestState = { ...latestState, ...changed };
     broadcastToAll(changed);
   });
+
   startServer();
 }
+
 initGlobal();
