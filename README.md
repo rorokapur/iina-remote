@@ -34,18 +34,5 @@ You can serve the web interface locally using `npx serve`:
 npx serve client
 ```
 
-Or from within the `client` directory:
-
-```bash
-cd client
-npx serve
-```
-
 ### 3. Connect
 Open the served URL in any browser on your network. Enter your Mac's IP address (or `localhost` if on the same machine) and the port `48381` in the connection dialog.
-
-## Technical Details
-
--   **Backend**: IINA Plugin API (`iina.ws`, `iina.global`).
--   **Frontend**: Vanilla JavaScript (ESM), CSS Variables, Flexbox/Grid for responsive layout.
--   **Communication**: JSON-based messages over WebSockets.
