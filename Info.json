@@ -1,7 +1,7 @@
 {
   "identifier": "com.rohan.remote",
   "name": "Remote Control",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Exposes a WebSocket enabling remote control via a local network.",
   "author": {
     "name": "Rohan Kapur (Antigravity)"
@@ -9,7 +9,7 @@
   "globalEntry": "global.js",
   "entry": "index.js",
   "ghRepo": "rorokapur/iina-remote",
-  "ghVersion": 4,
+  "ghVersion": 5,
   "permissions": [
     "network-request"
   ],

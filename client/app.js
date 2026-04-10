@@ -212,7 +212,11 @@ function applyState(state) {
 
   if (typeof state.title === 'string') {
     titleEl.textContent = state.title;
-    artistEl.textContent = state.title === 'No Media' ? 'Waiting for playback' : 'Playing in IINA';
+    if (state.artist) {
+      artistEl.textContent = state.artist;
+    } else {
+      artistEl.textContent = state.title === 'No Media' ? 'Waiting for playback' : 'Playing in IINA';
+    }
   }
 
   if (typeof state.pause === 'boolean') {

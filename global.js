@@ -73,6 +73,7 @@ function initGlobal() {
     if (typeof raw["time-pos"] === "number" && Number.isFinite(raw["time-pos"])) result["time-pos"] = raw["time-pos"];
     if (typeof raw.duration === "number" && Number.isFinite(raw.duration)) result.duration = raw.duration;
     if (raw.title !== undefined) result.title = cleanTitle(raw.title);
+    if (raw.artist !== undefined) result.artist = typeof raw.artist === "string" ? raw.artist : "";
     if (raw.stopAfterCurrent !== undefined) result.stopAfterCurrent = Boolean(raw.stopAfterCurrent);
     if (raw.playlist !== undefined) result.playlist = sanitizePlaylist(raw.playlist);
     if (typeof raw.playlistIndex === "number" && Number.isFinite(raw.playlistIndex)) {

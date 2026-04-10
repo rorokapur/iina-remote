@@ -90,6 +90,16 @@ function initPlayer() {
     }
   }
 
+  function safeMetadata(name, fallback) {
+    try {
+      const meta = iina.mpv.getNative("metadata");
+      if (!meta || typeof meta !== "object") return fallback;
+      return meta[name] || meta[name.toLowerCase()] || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
   function fullState() {
     return {
       pause: safeBoolean("pause", true),
@@ -97,6 +107,7 @@ function initPlayer() {
       "time-pos": safeNumber("time-pos", 0),
       duration: safeNumber("duration", 0),
       title: safeString("media-title", "No Media"),
+      artist: safeMetadata("Artist", ""),
       stopAfterCurrent,
       ...getPlaylistState()
     };
@@ -219,7 +230,7 @@ function initPlayer() {
         return;
       case "setVolume":
         if (typeof value !== "number" || !Number.isFinite(value)) return;
-        iina.core.audio.volume = Math.max(0, Math.min(value, 130));
+        iina.core.audio.volume = Math.max(0, Math.min(value, 100));
         queueState({ volume: safeNumber("volume", 100) });
         return;
       case "seek":
