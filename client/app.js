@@ -50,6 +50,25 @@ function setConnectionModalOpen(isOpen) {
   connectionModal.classList.toggle('open', isOpen);
 }
 
+function cleanTrackTitle(title, index = -1) {
+  if (!title) return "";
+  let clean = title.trim();
+  
+  // 1. Remove common file extensions
+  clean = clean.replace(/\.(mp3|mkv|mp4|flac|wav|m4a|aac|ogg|wma|avi|mov)$/i, "");
+  
+  // 2. Remove leading track numbers if they match the current index
+  if (index !== -1) {
+    const prefixRegex = new RegExp(`^0*${index + 1}[\\s\\-_.]+`, 'i');
+    clean = clean.replace(prefixRegex, '');
+  }
+  
+  // 3. Generally remove leading digits + common separators (e.g. "01 - ")
+  clean = clean.replace(/^\d+[\s\-_.]+/, "");
+  
+  return clean || title;
+}
+
 function defaultWSURL() {
   const host = window.location.hostname || 'localhost';
   return `ws://${host}:48381`;
@@ -211,7 +230,7 @@ function applyState(state) {
   if (!state || typeof state !== 'object') return;
 
   if (typeof state.title === 'string') {
-    titleEl.textContent = state.title;
+    titleEl.textContent = cleanTrackTitle(state.title, playlistIndex);
     if (state.artist) {
       artistEl.textContent = state.artist;
     } else {
@@ -289,7 +308,13 @@ function renderPlaylist() {
 
     const label = document.createElement('span');
     label.className = 'playlist-label';
-    label.textContent = `${String(item.index + 1).padStart(2, '0')}  ${item.title}`;
+    
+    // Clean title for display: 
+    // 1. Use metadata title or fallback to filename
+    const initialTitle = item.title || `Track ${item.index + 1}`;
+    const displayTitle = cleanTrackTitle(initialTitle, item.index);
+
+    label.textContent = `${String(item.index + 1).padStart(2, '0')}  ${displayTitle}`;
 
     button.appendChild(label);
     button.addEventListener('click', () => {
